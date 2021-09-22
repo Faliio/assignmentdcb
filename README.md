@@ -89,3 +89,6 @@ In the second part the script executes some queries:
 	and tab.StateName = min_val_state_year.StateName 
 	and tab.ReportYear = min_val_state_year.ReportYear'
 ```
+### Design
+A diagram explaining a solution of the design exercise (<a href="https://github.com/Faliio/assignmentdcb/raw/main/resources/3rdPart-Design.pdf">PDF Version</a>).
+<img src="https://github.com/Faliio/assignmentdcb/blob/main/resources/3rdPard-Design.svg?raw=true"/>
