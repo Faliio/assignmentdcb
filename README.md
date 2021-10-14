@@ -5,22 +5,15 @@ Assignment dcb
 ## Tech/framework used
 
 <b>Built with</b>
-- Python 3.8.2
+- Python 3.9
 
 <b>Python libraries</b>
 - requests
 - json
 - pandas
-- sqlite3
+- sqlalchemy
+- pymysql
 - urllib
-
-## Usage
-dataset_to_sql.py '<URL_JSON>' '<table_name>' '<connection_db_URL>'
-
-The script src / dataset_to_sql.py has as input:
-- URL_JSON -> URL of the JSON dataset
-- table_name -> Name of the target table
-- connection_db_URL -> DB connection URL
 
 ## Features
 ### Ingest data into a relational database from JSON files

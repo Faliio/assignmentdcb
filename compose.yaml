@@ -1,0 +1,25 @@
+version: "3"
+services:
+  assignmentdcb:
+    depends_on:
+      - db
+    build:
+      context: .
+    environment:
+      URL: "https://data.cdc.gov/api/views/cjae-szjv/rows.json?accessType=DOWNLOAD"
+      TABLE: "air_quality"
+      DB_HOST: "db"
+      DB_USER: "user_air"
+      DB_PASS: "pass"
+      DB_NAME: "air"
+  db:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    ports:
+      - '3306:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: air
+      MYSQL_USER: user_air
+      MYSQL_PASSWORD: pass

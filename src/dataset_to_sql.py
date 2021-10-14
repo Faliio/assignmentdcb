@@ -1,24 +1,24 @@
 from os import path
+from os import environ
 import sys
 import requests
 import json
 import pandas as pd
-import sqlite3
 import urllib
-
+from sqlalchemy import create_engine
 
 #conn_db_url = 'db.sqlite'
 #table_name = 'air_quality'
 #url = "https://data.cdc.gov/api/views/cjae-szjv/rows.json?accessType=DOWNLOAD"
 #file_path = 'rows.json'
 
-if not(len(sys.argv) - 1 == 3):
-    print("Usage: dataset_to_sql.py '<URL>' '<table_name>' '<connection_db_URL>'")
-    exit()
 
-url = sys.argv[1]
-table_name = sys.argv[2]
-conn_db_url = sys.argv[3]
+url = environ['URL']
+table_name = environ['TABLE']
+db_url = environ['DB_HOST']
+db_user = environ['DB_USER']
+db_pass = environ['DB_PASS']
+db_name = environ['DB_NAME']
 
 
 print('******** # 1st part - Ingest data into a relational database from JSON files ********')
@@ -56,9 +56,12 @@ print('\nInfo loaded DataFrame\n', df.info())
 print('\nDescribe loaded DataFrame\n', df.describe())
 
 # SQL connection
-conn = sqlite3.connect(conn_db_url)
+engine = create_engine(
+    'mysql+pymysql://{}:{}@{}/{}'.format(db_user, db_pass, db_url, db_name))
+
+conn = engine.connect()
 # Write DataFrame into table_name
-print('\nWrite table {} into db {}'.format(table_name, conn_db_url))
+print('\nWrite table {} into db {}'.format(table_name, db_name))
 df.to_sql(table_name, conn, if_exists='replace', index=False)
 
 # Read data from table_name
@@ -84,7 +87,7 @@ df4 = pd.read_sql('select avg(value) avg_value, ReportYear, StateName from {} wh
 print('\n4. Average value of "Number of person-days with PM2.5 over the National Ambient Air Quality Standard (monitor and modeled data)" per year and state in ascending order\n', df4)
 
 # 5
-df5 = pd.read_sql('select StateName from (select max(value) max_value, StateName from {} where MeasureName = \'Number of days with maximum 8-hour average ozone concentration over the National Ambient Air Quality Standard\' group by StateName order by max_value desc) limit 1'.format(table_name), conn)
+df5 = pd.read_sql('select StateName from (select max(value) max_value, StateName from {} where MeasureName = \'Number of days with maximum 8-hour average ozone concentration over the National Ambient Air Quality Standard\' group by StateName order by max_value desc) as df5 limit 1'.format(table_name), conn)
 print('\n5. State with the max accumulated value of "Number of days with maximum 8-hour average ozone concentration over the National Ambient Air Quality Standard" overall years\n', df5)
 
 # 6
@@ -94,3 +97,5 @@ print('\n6. Average value of "Number of person-days with maximum 8-hour average 
 # 7
 df7 = pd.read_sql('select tab.value, tab.CountyName, min_val_state_year.StateName, min_val_state_year.ReportYear from {} tab, (select min(value) min_value, StateName, ReportYear from {} where MeasureName = \'Number of days with maximum 8-hour average ozone concentration over the National Ambient Air Quality Standard\' group by StateName, ReportYear) min_val_state_year where tab.MeasureName = \'Number of days with maximum 8-hour average ozone concentration over the National Ambient Air Quality Standard\' and tab.value = min_val_state_year.min_value and tab.StateName = min_val_state_year.StateName and tab.ReportYear = min_val_state_year.ReportYear'.format(table_name, table_name), conn)
 print('\n7. County with min "Number of days with maximum 8-hour average ozone concentration over the National Ambient Air Quality Standard" per state per year\n', df7)
+
+conn.close()
